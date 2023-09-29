@@ -1,0 +1,18 @@
+//used in bybitfix
+    var ignoreTransaction = async (TRANSACTION) => {
+        var header = fetchHeaders();
+        header.append('Content-type', 'application/json; charset=UTF-8');
+        const requestOptions = {
+            method: 'POST',
+            headers: header,
+            redirect: 'follow'
+        };
+        
+        try {
+            const response = await fetch(`https://api.koinly.io/api/transactions/${TRANSACTION}/ignore`, requestOptions);
+            return response.json();
+        } catch(err) {
+            console.error(err)
+            throw new Error('Ignore transaction failed')
+        }
+    }

@@ -1,0 +1,35 @@
+    var run_kucoinfuturesfix = async (MAIN_WALLET_ID, FUTURES_WALLET_ID) => {
+        const session = await fetchSession();
+        const transactions = await getAllTransactions(FUTURES_WALLET_ID);
+        
+        var counter = 0;
+        for (var i=0; i<transactions.length; i++) {
+            var t = transactions[i];
+            var DATE = "", FROM_WALLET_ID = "", TO_WALLET_ID = "", AMOUNT = "", CURRENCY_ID = "", TRANSACTION = "";
+            TRANSACTION = t.id;
+            DATE = t.date;
+            var DOIT = false;
+            if (t.type == "crypto_withdrawal" && t.txsrc == "KuCoin Futures Account") {
+                AMOUNT = t.from.amount;
+                CURRENCY_ID = t.from.currency.id;
+                FROM_WALLET_ID = FUTURES_WALLET_ID;
+                TO_WALLET_ID = MAIN_WALLET_ID;
+                DOIT = true;
+            } else if (t.type == "crypto_deposit" && (t.txsrc == "KuCoin Main Account" || t.txsrc == "KuCoin Trading Account")) {
+                AMOUNT = t.to.amount;
+                CURRENCY_ID = t.to.currency.id;
+                FROM_WALLET_ID = MAIN_WALLET_ID;
+                TO_WALLET_ID = FUTURES_WALLET_ID;
+                DOIT = true;
+            }
+            if (DOIT) {
+                console.log(TRANSACTION + ", " + DATE + ", " + FROM_WALLET_ID + ", " + TO_WALLET_ID + ", " + AMOUNT + ", " + CURRENCY_ID)
+                await changeTransaction_kucoinfuturesfix(TRANSACTION, DATE, FROM_WALLET_ID, TO_WALLET_ID, AMOUNT, CURRENCY_ID);
+                counter++;
+                await timer(500); // then the created Promise can be awaited
+            }
+            //if (counter == 3)//test a small amount
+            //    break;
+        }
+        console.log("COMPLETE!!!!");
+    }

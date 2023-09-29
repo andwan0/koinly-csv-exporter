@@ -1,0 +1,17 @@
+    //OKx staking fix
+    var run_okxstakingfix = async (WALLETID, json) => {
+        const session = await fetchSession();
+
+        var counter = 0;
+        const obj = JSON.parse(json);
+        for (var h = 0; h < obj.length; i++) {
+            var currencyobj = await fetchCurrency(obj[h].symbol);
+            var currencyid = currencyobj.currencies[0].id;
+            const transactions = await getAllTransactions(WALLETID, null, null, currencyid);
+
+            //console.log('Your Koinly Transactions\n', transactions);
+            counter++;
+            if (counter == 1)
+                break;
+        }
+    }

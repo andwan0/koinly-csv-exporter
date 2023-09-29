@@ -1,0 +1,25 @@
+    //Remove submember_transfer_* (TxHash)
+    var run_bybitfix = async (wallet) => {
+        const session = await fetchSession();
+        const transactions = await getAllTransactions(wallet);
+        
+        var counter = 0;
+        for (var i=0; i<transactions.length; i++) {
+            var t = transactions[i];
+            var TRANSACTION = "";
+            var DOIT = false;
+            if (t.type == "crypto_deposit" && (t.txhash && t.txhash.startsWith("submember_transfer_"))) {
+                TRANSACTION = t.id;
+                DOIT = true;
+            }
+            if (DOIT) {
+                console.log(TRANSACTION);
+                await ignoreTransaction(TRANSACTION);
+                counter++;
+                await timer(1000); // then the created Promise can be awaited
+            }
+            //if (counter == 2)//test a small amount
+            //    break;
+        }
+        console.log(wallet + " wallet COMPLETE!!!!");
+    }

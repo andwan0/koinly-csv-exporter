@@ -1,0 +1,15 @@
+    //Original download CSV v2
+    var run_downloadcsv = async (wallet) => {
+        const session = await fetchSession();
+        const wallets = await getAllWallets();
+        var dict = new Object();
+        for (var i = 0; i < wallets.length; i++) {
+            var id = wallets[i].id;
+            var name = wallets[i].name;
+            dict[id] = name;
+        }
+        const baseCurrency = session.portfolios[0].base_currency.symbol;
+        const transactions = await getAllTransactions(wallet);
+        console.log('Your Koinly Transactions\n', transactions);
+        toCSVFile(baseCurrency, transactions, wallet, dict[wallet]);
+    }

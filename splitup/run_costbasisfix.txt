@@ -1,0 +1,67 @@
+    //Cost Basis Fix
+    var run_costbasisfix = async (json) => {
+        const session = await fetchSession();
+        const wallets = await getAllWallets();
+        var dict = new Object();
+        for (var i = 0; i < wallets.length; i++) {
+            var id = wallets[i].id;
+            var name = wallets[i].name;
+            dict[id] = name;
+        }
+        const baseCurrency = session.portfolios[0].base_currency.symbol;
+
+        var counter = 0;
+        const obj = JSON.parse(json);
+        for (let k in obj) {
+            //console.log('loop ' + k);
+            let part = obj[k];
+            var fromdate = k + 'T00%3A00%3A00.000Z';
+            var todate = k + 'T23%3A59%3A59.999Z';
+            const transactions = await getAllTransactions(null, fromdate, todate);
+            //console.log('Koinly Transactions for ' + k + '\n', transactions);
+            for (var i = 0; i < part.length; i++) {
+                //console.log('loop ' + i);
+                let tran = part[i];
+                //find the transactionid
+                var FOUNDIT = false;
+                for (var j = 0; j < transactions.length; j++) {
+                    //console.log('loop ' + j);
+                    var t = transactions[j];
+                    var DATE = "", AMOUNT = "", CURRENCY = "", CURRENCY_ID = "", TRANSACTION = "";
+                    TRANSACTION = t.id;
+                    DATE = t.date;
+                    if (t.type == "crypto_withdrawal") {//gift
+                        AMOUNT = t.from.amount;
+                        CURRENCY = t.from.currency.symbol;
+                        CURRENCY_ID = t.from.currency.id;
+                    } else if (t.type == "crypto_deposit") {//fork - need cost basis
+                        AMOUNT = t.to.amount;
+                        CURRENCY = t.to.currency.symbol;
+                        CURRENCY_ID = t.to.currency.id;
+                    }
+                    if (AMOUNT == tran.value1 || AMOUNT == tran.value2
+                        && CURRENCY == tran.currency) {//found match!!!
+                            console.log('FOUND MATCH ' + AMOUNT + ' ' + CURRENCY);
+                            if (t.type == "crypto_withdrawal") {//gift  && t.label == null
+                                await changeTransaction_costbasis("gift", TRANSACTION, DATE, AMOUNT, CURRENCY_ID, t.net_value, t.from.cost_basis);//from cost_basis = original cost_basis before Koinly blanks it
+                            } else if (t.type == "crypto_deposit") {//fork - need cost basis
+                                await changeTransaction_costbasis("fork", TRANSACTION, DATE, AMOUNT, CURRENCY_ID, tran.worth, t.to.cost_basis);
+                            }
+                            counter++;
+                            await timer(500); // then the created Promise can be awaited
+                            FOUNDIT = true;
+                            break;
+                    }
+                }
+                if (FOUNDIT == false) {
+                    console.log('------> COULD NOT FIND ' + k + ' ' + tran.value1 + ' ' + tran.currency + ' ' + tran.from + ' ' + tran.to);
+                }
+                //if (counter == 1)//test a small amount
+                //    break;
+            }
+            //if (counter == 1)//test a small amount
+            //    break;
+        }
+        console.log("COMPLETE!!!!");
+
+    }

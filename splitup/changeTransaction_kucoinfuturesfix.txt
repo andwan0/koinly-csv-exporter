@@ -1,0 +1,31 @@
+    var changeTransaction_kucoinfuturesfix = async (TRANSACTION, DATE, FROM_WALLET_ID, TO_WALLET_ID, AMOUNT, CURRENCY_ID) => {
+        var obj = {
+            transaction: {
+                label: null,
+                date: DATE,//2021-04-21T14:08:15.000Z
+                from_wallet_id: FROM_WALLET_ID,
+                from_currency_id: CURRENCY_ID,
+                from_amount: AMOUNT,
+                type: "transfer",
+                to_amount: AMOUNT,
+                to_wallet_id: TO_WALLET_ID,
+                to_currency_id: CURRENCY_ID
+            }
+        };
+        var header = fetchHeaders();
+        header.append('Content-type', 'application/json; charset=UTF-8');
+        const requestOptions = {
+            method: 'PUT',
+            headers: header,
+            redirect: 'follow',
+            body: JSON.stringify(obj)
+        };
+        
+        try {
+            const response = await fetch(`https://api.koinly.io/api/transactions/${TRANSACTION}`, requestOptions);
+            return response.json();
+        } catch(err) {
+            console.error(err)
+            throw new Error('Change transaction failed')
+        }
+    }
